@@ -1,0 +1,8 @@
+druid.service=coordinator
+druid.plaintextPort=8081
+# druid.host=${DRUID_HOST}
+# druid.plaintextPort=${DRUID_SERVICE_PORT}
+# druid.port=${DRUID_SERVICE_PORT}
+
+druid.coordinator.startDelay=PT10S
+druid.coordinator.period=PT5S

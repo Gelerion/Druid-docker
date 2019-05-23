@@ -1,0 +1,32 @@
+# druid.service=${DRUID_SERVICE}
+# druid.plaintextPort=${DRUID_SERVICE_PORT}
+# druid.port=${DRUID_SERVICE_PORT}
+druid.service=broker
+druid.plaintextPort=8082
+
+# HTTP server settings
+druid.server.http.numThreads=2
+# HTTP client settings
+druid.broker.http.numConnections=5
+
+# Processing threads and buffers
+druid.processing.buffer.sizeBytes=256000000
+druid.processing.numMergeBuffers=2
+druid.processing.numThreads=1
+
+# Logging
+# druid.monitoring.monitors=["io.druid.client.cache.CacheMonitor", "com.metamx.metrics.JvmMonitor"]
+druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor"]
+
+# Query cache disabled -- push down caching and merging instead
+# druid.broker.cache.useCache=false
+# druid.broker.cache.populateCache=false
+
+# Queries
+druid.query.groupBy.singleThreaded=false
+druid.query.topN.minTopNThreshold=100
+
+druid.broker.cache.useCache=true
+druid.broker.cache.populateCache=true
+druid.cache.type=local
+druid.cache.sizeInBytes=10000000

@@ -1,0 +1,44 @@
+# The MiddleManager process is a worker process that executes submitted tasks. Middle Managers forward tasks to 
+# Peons that run in separate JVMs. The reason we have separate JVMs for tasks is for resource and log isolation. 
+# Each Peon is capable of running only one task at a time, however, a MiddleManager may have multiple Peons.
+
+# General
+# druid.service=${DRUID_SERVICE}
+# druid.host=${DRUID_HOST}
+# druid.worker.ip=${DRUID_HOST}
+# druid.plaintextPort=${DRUID_SERVICE_PORT}
+# druid.port=${DRUID_SERVICE_PORT}
+druid.service=middlemanager
+druid.plaintextPort=8091
+
+# HTTP server threads
+druid.server.http.numThreads=5
+
+# Indexing
+# Number of tasks per middleManager
+druid.worker.capacity=2
+druid.indexer.runner.startPort=7081
+
+# Processing threads and buffers on Peons
+druid.indexer.fork.property.druid.processing.buffer.sizeBytes=256000000
+druid.indexer.fork.property.druid.processing.numThreads=2
+
+# Logging
+# druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor", "io.druid.server.metrics.EventReceiverFirehoseMonitor"]
+druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor"]
+druid.indexer.fork.property.druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor"]
+
+# Hadoop indexing
+druid.indexer.task.hadoopWorkingPath=var/druid/hadoop-tmp
+druid.indexer.task.defaultHadoopCoordinates=["org.apache.hadoop:hadoop-client:2.8.3"]
+
+# Peon Deep Storage
+# druid.indexer.fork.property.druid.storage.type=s3
+# druid.indexer.fork.property.druid.storage.storageDirectory=druid/segments
+
+# Peon
+# Task launch parameters
+# druid.indexer.runner.javaOpts=-server -Xmx2g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+druid.indexer.runner.javaOpts=${JVM_PEONS_ARGS}
+druid.indexer.task.baseTaskDir=var/druid/task
+druid.indexer.task.restoreTasksOnRestart=true

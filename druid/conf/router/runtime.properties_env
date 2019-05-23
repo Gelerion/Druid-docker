@@ -1,0 +1,22 @@
+# Optional
+# The Apache Druid (incubating) Router process can be used to route queries to different Broker processes. By default, 
+# the broker routes queries based on how Rules are set up. For example, if 1 month of recent data is loaded into a hot cluster, 
+# queries that fall within the recent month can be routed to a dedicated set of brokers. Queries outside this range are routed 
+# to another set of brokers. This set up provides query isolation such that queries for more important data are not impacted 
+# by queries for less important data.
+
+# General
+druid.service=router
+druid.plaintextPort=8080
+
+druid.router.http.numConnections=6
+druid.router.http.readTimeout=PT5M
+
+druid.router.defaultBrokerServiceName=broker
+druid.router.coordinatorServiceName=coordinator
+
+# Number of threads used by the Router proxy http client
+druid.router.http.numMaxThreads=6
+druid.server.http.numThreads=6
+
+druid.router.managementProxy.enabled=true

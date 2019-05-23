@@ -1,0 +1,244 @@
+version: "2.4"
+# docker-compose up --build
+# docker-compose rm -v to delete everything and starting it up again.
+
+services:
+
+  mysql:
+    build: ./mysql
+    image: druid-mysql:latest
+    container_name: druid-mysql
+    # restart: unless-stopped
+    networks:
+      - druid-net
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_USER=druid
+      - MYSQL_PASSWORD=diurd
+      - MYSQL_ROOT_PASSWORD=1234
+
+  s3-minio:
+    image: minio/minio:latest
+    container_name: s3-minio
+    hostname: s3minio
+    # restart: unless-stopped
+    networks:
+      - druid-net
+    ports:
+      - "9000:9000"
+    command: server /data
+    environment:
+      - MINIO_ACCESS_KEY=druid-s3-access
+      - MINIO_SECRET_KEY=druid-s3-secret
+
+  # Exhibitor is a Java supervisor system for ZooKeeper.
+  # https://github.com/soabase/exhibitor/wiki
+  zookeeper:
+    image: zookeeper:latest
+    container_name: druid-zookeeper
+    # restart: unless-stopped
+    networks:
+      - druid-net
+    ports:
+      - 2181:2181
+    environment:
+      - ZOO_MY_ID=1
+      - ZOO_SERVERS=zookeeper
+
+  zoonavigator-web:
+    image: elkozmon/zoonavigator-web:latest
+    container_name: zoonavigator-web
+    ports:
+      - "8000:8000"
+    # restart: unless-stopped
+    networks:
+      - druid-net
+    environment:
+      WEB_HTTP_PORT: 8000
+      API_HOST: zoonavigator-api
+      API_PORT: 9000
+    depends_on:
+      - zoonavigator-api
+
+  zoonavigator-api:
+    image: elkozmon/zoonavigator-api:latest
+    container_name: zoonavigator-api
+    restart: unless-stopped
+    networks:
+      - druid-net
+    environment:
+      - API_HTTP_PORT=9000
+      
+# TODO: modify druid conf - mysql
+# TODO: modify druid conf - minio
+
+  # ==== Setup Druid ====
+  coordinator:
+    build: ./druid
+    image: druid-coordinator:latest
+    container_name: druid-coordinator
+    hostname: coordinator
+    networks:
+      - druid-net
+    depends_on: 
+      - mysql
+      - zookeeper
+      - s3-minio
+    ports:
+      - "8081:8081"
+    environment:
+      - DRUID_SERVICE=coordinator
+      - DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+      - S3_ACCESS_KEY=druid-s3-access
+      - S3_SECRET_KEY=druid-s3-secret
+      - ZOOKEEPER_SERVER=zookeeper
+      - LOG_LEVEL=info
+      - METADATA_STORAGE_HOST=mysql
+      - METADATA_STORAGE_PORT=3306
+      - METADATA_STORAGE_USER=druid
+      - METADATA_STORAGE_PASSWORD=diurd
+      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+
+  broker:
+    build: ./druid
+    image: druid-broker:latest
+    container_name: druid-broker
+    hostname: broker
+    networks:
+      - druid-net
+    depends_on: 
+      - mysql
+      - zookeeper
+      - s3-minio
+      - coordinator
+    ports:
+      - "8082:8082"
+    # 3.2gb
+    mem_limit: 3200000000
+    mem_reservation: 500m
+    environment:
+      - DRUID_SERVICE=broker
+      - DRUID_JVM_ARGS=-server -Xms3g -Xmx3g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -XX:NewSize=512m -XX:MaxNewSize=512m -XX:MaxDirectMemorySize=3g -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dcom.sun.management.jmxremote.port=17071 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+      - S3_ACCESS_KEY=druid-s3-access
+      - S3_SECRET_KEY=druid-s3-secret
+      - ZOOKEEPER_SERVER=zookeeper
+      - LOG_LEVEL=info
+      - METADATA_STORAGE_HOST=mysql
+      - METADATA_STORAGE_PORT=3306
+      - METADATA_STORAGE_USER=druid
+      - METADATA_STORAGE_PASSWORD=diurd
+      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+
+  historical:
+    build: ./druid
+    image: druid-historical:latest
+    container_name: druid-historical
+    hostname: historical
+    networks:
+      - druid-net
+    ports:
+      - "8083:8083"
+    depends_on: 
+      - mysql
+      - zookeeper
+      - s3-minio
+      - coordinator
+    # 2.2gb
+    mem_limit: 2200000000
+    mem_reservation: 200m
+    environment:
+      - DRUID_SERVICE=historical
+      - DRUID_JVM_ARGS=-server -Xms2g -Xmx2g -XX:MaxDirectMemorySize=3g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -XX:NewSize=1g -XX:MaxNewSize=1g -XX:+UseConcMarkSweepGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps
+      - S3_ACCESS_KEY=druid-s3-access
+      - S3_SECRET_KEY=druid-s3-secret
+      - ZOOKEEPER_SERVER=zookeeper
+      - LOG_LEVEL=info
+      - METADATA_STORAGE_HOST=mysql
+      - METADATA_STORAGE_PORT=3306
+      - METADATA_STORAGE_USER=druid
+      - METADATA_STORAGE_PASSWORD=diurd
+      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+
+  overlord:
+    build: ./druid
+    image: druid-overlord:latest
+    container_name: druid-overlord
+    hostname: overlord
+    networks:
+      - druid-net
+    ports:
+      - "8090:8090"
+    depends_on: 
+      - mysql
+      - zookeeper
+      - s3-minio
+      - coordinator
+    environment:
+      - DRUID_SERVICE=overlord
+      - DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+      - S3_ACCESS_KEY=druid-s3-access
+      - S3_SECRET_KEY=druid-s3-secret
+      - ZOOKEEPER_SERVER=zookeeper
+      - LOG_LEVEL=info
+      - METADATA_STORAGE_HOST=mysql
+      - METADATA_STORAGE_PORT=3306
+      - METADATA_STORAGE_USER=druid
+      - METADATA_STORAGE_PASSWORD=diurd
+      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+      - AWS_REGION=us-east-1
+
+  middlemanager:
+    build: ./druid
+    image: druid-middlemanager:latest
+    container_name: druid-middlemanager
+    hostname: middlemanager
+    networks:
+      - druid-net
+    ports:
+      - "8091:8091"
+    depends_on: 
+      - mysql
+      - zookeeper
+      - s3-minio
+      - coordinator
+    environment:
+      - DRUID_SERVICE=middleManager
+      - DRUID_JVM_ARGS=-server -Xms64m -Xmx64m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+      - S3_ACCESS_KEY=druid-s3-access
+      - S3_SECRET_KEY=druid-s3-secret
+      - ZOOKEEPER_SERVER=zookeeper
+      - LOG_LEVEL=info
+      - METADATA_STORAGE_HOST=mysql
+      - METADATA_STORAGE_PORT=3306
+      - METADATA_STORAGE_USER=druid
+      - METADATA_STORAGE_PASSWORD=diurd
+      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+      - AWS_REGION=us-east-1
+
+  router:
+    build: ./druid
+    image: druid-router:latest
+    container_name: druid-router
+    hostname: router
+    networks:
+      - druid-net
+    ports:
+      - "8080:8080"
+    depends_on: 
+      - mysql
+      - zookeeper
+      - s3-minio
+      - coordinator
+      - broker      
+    environment:
+      - DRUID_SERVICE=router
+      - DRUID_JVM_ARGS=-server -Xms2g -Xmx2g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
+      - S3_ACCESS_KEY=druid-s3-access
+      - S3_SECRET_KEY=druid-s3-secret
+      - ZOOKEEPER_SERVER=zookeeper
+      - LOG_LEVEL=info
+
+networks:
+  druid-net:
+    driver: bridge

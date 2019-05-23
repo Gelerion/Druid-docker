@@ -1,0 +1,90 @@
+#
+# Extensions
+#
+druid.extensions.loadList=["druid-s3-extensions", "druid-histogram", "druid-datasketches", "druid-lookups-cached-global", "mysql-metadata-storage", "druid-avro-extensions","druid-parquet-extensions"]
+
+# If you have a different version of Hadoop, place your Hadoop client jar files in your hadoop-dependencies directory
+# and uncomment the line below to point to your directory.
+#druid.extensions.hadoopDependenciesDir=/my/dir/hadoop-dependencies
+
+#
+# Logging
+#
+
+# Log all runtime properties on startup. Disable to avoid logging properties on startup:
+druid.emitter=logging
+druid.emitter.logging.logLevel=${LOG_LEVEL}
+druid.startup.logging.logProperties=true
+
+#
+# Zookeeper
+#
+druid.zk.service.host=${ZOOKEEPER_SERVER}
+druid.zk.paths.base=/druid
+
+#
+# Metadata storage
+#
+
+# For Derby server on your Druid Coordinator (only viable in a cluster with a single Coordinator, no fail-over):
+druid.metadata.storage.type=mysql
+druid.metadata.storage.connector.connectURI=jdbc:mysql://${METADATA_STORAGE_HOST}:${METADATA_STORAGE_PORT}/druid
+druid.metadata.storage.connector.user=${METADATA_STORAGE_USER}
+druid.metadata.storage.connector.password=${METADATA_STORAGE_PASSWORD}
+
+#
+# Deep storage
+#
+
+# For local disk (only viable in a cluster if this is a network mount):
+# druid.storage.type=local
+# druid.storage.storageDirectory=var/druid/segments
+
+# For S3:
+druid.storage.type=s3
+druid.storage.bucket=druid
+druid.storage.baseKey=segments
+druid.s3.accessKey=${S3_ACCESS_KEY}
+druid.s3.secretKey=${S3_SECRET_KEY}
+### For s3 minio
+druid.s3.enablePathStyleAccess=true
+druid.s3.endpoint.url=http://s3-minio:9000
+druid.s3.endpoint.signingRegion=us-east-1
+###
+
+#
+# Indexing service logs
+#
+
+# For local disk (only viable in a cluster if this is a network mount):
+# druid.indexer.logs.type=file
+# druid.indexer.logs.directory=var/druid/indexing-logs
+
+# For S3:
+druid.indexer.logs.type=s3
+druid.indexer.logs.s3Bucket=druid
+druid.indexer.logs.s3Prefix=indexing-logs
+druid.s3.protocol=http
+
+#
+# Service discovery
+#
+druid.selectors.indexing.serviceName=druid/overlord
+druid.selectors.coordinator.serviceName=druid/coordinator
+
+#
+# Monitoring
+#
+druid.monitoring.monitors=["io.druid.java.util.metrics.JvmMonitor"]
+druid.emitter=logging
+druid.emitter.logging.logLevel=DEBUG
+
+# Storage type of double columns
+# ommiting this will lead to index double as float at the storage layer
+druid.indexing.doubleStorage=double
+
+# Security
+druid.server.hiddenProperties=["druid.s3.accessKey","druid.s3.secretKey","druid.metadata.storage.connector.password"]
+
+# SQL
+druid.sql.enable=true
