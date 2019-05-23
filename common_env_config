@@ -1,0 +1,10 @@
+AWS_REGION=us-east-1
+
+ZOOKEEPER_SERVER=zookeeper
+
+LOG_LEVEL=info
+
+METADATA_STORAGE_HOST=mysql
+METADATA_STORAGE_PORT=3306
+
+DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
