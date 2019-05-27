@@ -84,3 +84,20 @@ curl -X 'POST' -H 'Content-Type:application/json' -d @your-repository-folder/wik
 To view the status of the ingestion task, go to the Druid Console Tasks section: [http://localhost:8080/unified-console.html#tasks](http://localhost:8080/unified-console.html#tasks). You can refresh the console periodically, and after the task is successful, you should see a "SUCCESS" status for the task under the Tasks view.  
 ![Screenshot](data/images/tasks_section.png)
 After the ingestion task finishes, the data will be loaded by Historical processes and available for querying within a minute or two.
+The segments files could be found in s3 storgae as well.
+![Screenshot](data/images/minio_segments.png)
+
+#### Quering Data
+Now open sql tab: [http://localhost:8080/unified-console.html#sql](http://localhost:8080/unified-console.html#sql)
+
+You are free to run any sql query, for example:
+```
+SELECT page, COUNT(*) AS Edits 
+FROM wikipedia 
+WHERE "__time" BETWEEN TIMESTAMP '2015-09-12 00:00:00' AND TIMESTAMP '2015-09-13 00:00:00' 
+GROUP BY page O
+RDER BY Edits DESC LIMIT 10
+```
+![Screenshot](data/images/query_results.png)
+
+Or any other query as demonstared in [this](http://druid.io/docs/latest/tutorials/tutorial-query.html) tutorial.
