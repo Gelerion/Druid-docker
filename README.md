@@ -1,3 +1,4 @@
+![Screenshot](data/images/druid_logo.png)
 # Druid Docker
 
 Creates fully configured and ready to use druid cluster, which uses `s3` as a deep storage and `mysql` as a metadata store.
@@ -64,3 +65,22 @@ The MiddleManager process is a worker process that executes submitted tasks. Mid
 In addition to query routing, the Router also runs the Druid Console, a management UI for datasources, segments, tasks, data processes (Historicals and MiddleManagers), and coordinator dynamic configuration. The user can also run SQL and native Druid queries within the console.
 
 ## Usage
+Go to the [router](http://localhost:8080) page and you should see the following UI   
+![Screenshot](data/images/router_ui.png)
+
+Go to the [s3-minio](http://localhost:9000) page and you should see the following UI (secrets could be found in running section)  
+![Screenshot](data/images/s3-minio-ui.png)
+
+Go to the [zookeeper web](http://localhost:8000) page and you should see the following UI (secrets could be found in running section)  
+![Screenshot](data/images/zookeeper_ui.png)
+
+#### Testing our cluster
+Go to the [s3-minio](http://localhost:9000) and create a new bucket called `testbucket`, then upload `wikiticker-2015-09-12-sampled.json`.  
+It can be found under data folder.  
+Then submit the task, POST it to Druid's overlord (by default it runs on 8090)
+```
+curl -X 'POST' -H 'Content-Type:application/json' -d @your-repository-folder/wikipedia-index.json http://localhost:8090/druid/indexer/v1/task
+```
+To view the status of the ingestion task, go to the Druid Console Tasks section: [http://localhost:8080/unified-console.html#tasks](http://localhost:8080/unified-console.html#tasks). You can refresh the console periodically, and after the task is successful, you should see a "SUCCESS" status for the task under the Tasks view.  
+![Screenshot](data/images/tasks_section.png)
+After the ingestion task finishes, the data will be loaded by Historical processes and available for querying within a minute or two.
