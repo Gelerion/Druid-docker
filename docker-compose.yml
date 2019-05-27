@@ -14,9 +14,9 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_USER=druid
-      - MYSQL_PASSWORD=diurd
-      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_USER=${MYSQL_USER_NAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 
   s3-minio:
     image: minio/minio:latest
@@ -29,8 +29,22 @@ services:
       - "9000:9000"
     command: server /data
     environment:
-      - MINIO_ACCESS_KEY=druid-s3-access
-      - MINIO_SECRET_KEY=druid-s3-secret
+      - MINIO_ACCESS_KEY=${S3_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${S3_SECRET_KEY}
+  
+  # once s3 minio is started client creates bucket ith the same name as configured in druid.storage.bucket 
+  minio-client:
+    image: minio/mc:latest
+    container_name: minio-client
+    networks:
+      - druid-net
+    depends_on:
+      s3-minio:
+        condition: service_healthy
+    env_file:
+      - common_env_config
+    entrypoint: >
+      sh -c "mc config host add minio http://s3-minio:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY} && mc mb minio/$$S3_STORAGE_BUKCET"
 
   # Exhibitor is a Java supervisor system for ZooKeeper.
   # https://github.com/soabase/exhibitor/wiki
@@ -87,18 +101,16 @@ services:
       - s3-minio
     ports:
       - "8081:8081"
+    env_file:
+      - common_env_config
     environment:
       - DRUID_SERVICE=coordinator
       - DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
-      - S3_ACCESS_KEY=druid-s3-access
-      - S3_SECRET_KEY=druid-s3-secret
-      - ZOOKEEPER_SERVER=zookeeper
-      - LOG_LEVEL=info
-      - METADATA_STORAGE_HOST=mysql
-      - METADATA_STORAGE_PORT=3306
-      - METADATA_STORAGE_USER=druid
-      - METADATA_STORAGE_PASSWORD=diurd
-      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - METADATA_STORAGE_USER=${MYSQL_USER_NAME}
+      - METADATA_STORAGE_PASSWORD=${MYSQL_PASSWORD}
+
 
   broker:
     build: ./druid
@@ -115,20 +127,17 @@ services:
     ports:
       - "8082:8082"
     # 3.2gb
-    mem_limit: 3200000000
-    mem_reservation: 500m
+    # mem_limit: 3200000000
+    # mem_reservation: 500m
+    env_file:
+      - common_env_config
     environment:
       - DRUID_SERVICE=broker
       - DRUID_JVM_ARGS=-server -Xms3g -Xmx3g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -XX:NewSize=512m -XX:MaxNewSize=512m -XX:MaxDirectMemorySize=3g -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dcom.sun.management.jmxremote.port=17071 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
-      - S3_ACCESS_KEY=druid-s3-access
-      - S3_SECRET_KEY=druid-s3-secret
-      - ZOOKEEPER_SERVER=zookeeper
-      - LOG_LEVEL=info
-      - METADATA_STORAGE_HOST=mysql
-      - METADATA_STORAGE_PORT=3306
-      - METADATA_STORAGE_USER=druid
-      - METADATA_STORAGE_PASSWORD=diurd
-      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - METADATA_STORAGE_USER=${MYSQL_USER_NAME}
+      - METADATA_STORAGE_PASSWORD=${MYSQL_PASSWORD}
 
   historical:
     build: ./druid
@@ -145,20 +154,17 @@ services:
       - s3-minio
       - coordinator
     # 2.2gb
-    mem_limit: 2200000000
-    mem_reservation: 200m
+    # mem_limit: 2200000000
+    # mem_reservation: 200m
+    env_file:
+      - common_env_config
     environment:
       - DRUID_SERVICE=historical
       - DRUID_JVM_ARGS=-server -Xms2g -Xmx2g -XX:MaxDirectMemorySize=3g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -XX:NewSize=1g -XX:MaxNewSize=1g -XX:+UseConcMarkSweepGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps
-      - S3_ACCESS_KEY=druid-s3-access
-      - S3_SECRET_KEY=druid-s3-secret
-      - ZOOKEEPER_SERVER=zookeeper
-      - LOG_LEVEL=info
-      - METADATA_STORAGE_HOST=mysql
-      - METADATA_STORAGE_PORT=3306
-      - METADATA_STORAGE_USER=druid
-      - METADATA_STORAGE_PASSWORD=diurd
-      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - METADATA_STORAGE_USER=${MYSQL_USER_NAME}
+      - METADATA_STORAGE_PASSWORD=${MYSQL_PASSWORD}
 
   overlord:
     build: ./druid
@@ -174,19 +180,15 @@ services:
       - zookeeper
       - s3-minio
       - coordinator
+    env_file:
+      - common_env_config
     environment:
       - DRUID_SERVICE=overlord
       - DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
-      - S3_ACCESS_KEY=druid-s3-access
-      - S3_SECRET_KEY=druid-s3-secret
-      - ZOOKEEPER_SERVER=zookeeper
-      - LOG_LEVEL=info
-      - METADATA_STORAGE_HOST=mysql
-      - METADATA_STORAGE_PORT=3306
-      - METADATA_STORAGE_USER=druid
-      - METADATA_STORAGE_PASSWORD=diurd
-      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
-      - AWS_REGION=us-east-1
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - METADATA_STORAGE_USER=${MYSQL_USER_NAME}
+      - METADATA_STORAGE_PASSWORD=${MYSQL_PASSWORD}
 
   middlemanager:
     build: ./druid
@@ -202,19 +204,15 @@ services:
       - zookeeper
       - s3-minio
       - coordinator
+    env_file:
+      - common_env_config
     environment:
       - DRUID_SERVICE=middleManager
       - DRUID_JVM_ARGS=-server -Xms64m -Xmx64m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
-      - S3_ACCESS_KEY=druid-s3-access
-      - S3_SECRET_KEY=druid-s3-secret
-      - ZOOKEEPER_SERVER=zookeeper
-      - LOG_LEVEL=info
-      - METADATA_STORAGE_HOST=mysql
-      - METADATA_STORAGE_PORT=3306
-      - METADATA_STORAGE_USER=druid
-      - METADATA_STORAGE_PASSWORD=diurd
-      - DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
-      - AWS_REGION=us-east-1
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - METADATA_STORAGE_USER=${MYSQL_USER_NAME}
+      - METADATA_STORAGE_PASSWORD=${MYSQL_PASSWORD}
 
   router:
     build: ./druid
@@ -230,14 +228,14 @@ services:
       - zookeeper
       - s3-minio
       - coordinator
-      - broker      
+      - broker    
+    env_file:
+      - common_env_config  
     environment:
       - DRUID_SERVICE=router
       - DRUID_JVM_ARGS=-server -Xms2g -Xmx2g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager
-      - S3_ACCESS_KEY=druid-s3-access
-      - S3_SECRET_KEY=druid-s3-secret
-      - ZOOKEEPER_SERVER=zookeeper
-      - LOG_LEVEL=info
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
 
 networks:
   druid-net:

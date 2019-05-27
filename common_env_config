@@ -1,4 +1,6 @@
 AWS_REGION=us-east-1
+S3_STORAGE_BUKCET=druid
+S3_STORAGE_BASE_KEY=segments
 
 ZOOKEEPER_SERVER=zookeeper
 
