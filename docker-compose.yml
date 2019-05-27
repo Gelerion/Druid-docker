@@ -32,7 +32,7 @@ services:
       - MINIO_ACCESS_KEY=${S3_ACCESS_KEY}
       - MINIO_SECRET_KEY=${S3_SECRET_KEY}
   
-  # once s3 minio is started client creates bucket ith the same name as configured in druid.storage.bucket 
+  # once s3 minio is started client creates bucket with the same name as configured in druid.storage.bucket 
   minio-client:
     image: minio/mc:latest
     container_name: minio-client
@@ -83,9 +83,6 @@ services:
       - druid-net
     environment:
       - API_HTTP_PORT=9000
-      
-# TODO: modify druid conf - mysql
-# TODO: modify druid conf - minio
 
   # ==== Setup Druid ====
   coordinator:
