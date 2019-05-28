@@ -101,3 +101,21 @@ RDER BY Edits DESC LIMIT 10
 ![Screenshot](data/images/query_results.png)
 
 Or any other query as demonstared in [this](http://druid.io/docs/latest/tutorials/tutorial-query.html) tutorial.
+
+# Druid Configuration
+## Environments variables
+* **ZOOKEEPER_SERVER** - The zookeeper server address.
+* **DRUID_SERVICE** - The name of the druid service [`broker`, `historical`, `coordinator`, `overlord`, `middleManager`, `router`]
+* **DRUID_HOST** - The advertiser address that uses druid to expose the service on zookeeper.
+* **DRUID_SERVICE_PORT** - The service port where bind the druid service.
+* **DRUID_JVM_ARGS** - The JVM arguments to execute the druid services.
+* **DRUID_PULL_EXTENSION** - The druid extension to download, this download is performed at running time. You need to pass the extension with whitespace: `extension1:extension1:version` `extension2:extension2:version`
+* **AWS_REGION** - AWS region this is needed to work with AWS S3 extension.
+* **S3_ACCESS_KEY** - Your S3 access key
+* **S3_SECRET_KEY** - Your S3 secret key
+* **S3_STORAGE_BUKCET** - S3 bucket for segmnts to be stored into, must exists
+* **S3_STORAGE_BASE_KEY** - S3 segments path key
+* **METADATA_STORAGE_HOST** - The name of the metadata storage [`mysql`, `postgresql`, `derby`]
+* **METADATA_STORAGE_PORT** - The port metadata storage is listening on
+* **METADATA_STORAGE_USER** - The user name to connect to the metadata storage
+* **METADATA_STORAGE_PASSWORD** - The password to connect to the metadata storage
