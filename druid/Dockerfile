@@ -1,6 +1,6 @@
 FROM openjdk:8
 
-ARG DRUID_VERSION=0.14.1-incubating
+ARG DRUID_VERSION=0.14.2-incubating
 ENV DRUID_VERSION ${DRUID_VERSION}
 ENV LOG_LEVEL info
 
@@ -8,7 +8,7 @@ RUN apt-get update \
       && apt-get install -y curl gettext-base
 
 # Install druid
-RUN curl http://apache.rediris.es/incubator/druid/${DRUID_VERSION}/apache-druid-${DRUID_VERSION}-bin.tar.gz > /opt/druid-${DRUID_VERSION}-bin.tar.gz \
+RUN curl http://apache.spd.co.il/incubator/druid/${DRUID_VERSION}/apache-druid-${DRUID_VERSION}-bin.tar.gz > /opt/druid-${DRUID_VERSION}-bin.tar.gz \
       && tar -xvf /opt/druid-${DRUID_VERSION}-bin.tar.gz -C /opt/ \
       && rm -f /opt/druid-${DRUID_VERSION}-bin.tar.gz \
       && mv /opt/apache-druid-${DRUID_VERSION} /opt/druid \

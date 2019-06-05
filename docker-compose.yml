@@ -58,7 +58,6 @@ services:
       - 2181:2181
     environment:
       - ZOO_MY_ID=1
-      - ZOO_SERVERS=zookeeper
 
   zoonavigator-web:
     image: elkozmon/zoonavigator-web:latest

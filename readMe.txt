@@ -12,3 +12,7 @@ Alternatives:
  https://github.com/khwj/docker-druid
  https://github.com/wizzie-io/druid-docker
  https://github.com/druid-io/docker-druid
+ https://github.com/anskarl/druid-docker-cluster
+
+Druid Scala client library: 
+ https://github.com/ing-bank/scruid
