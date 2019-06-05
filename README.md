@@ -95,8 +95,8 @@ You are free to run any sql query, for example:
 SELECT page, COUNT(*) AS Edits 
 FROM wikipedia 
 WHERE "__time" BETWEEN TIMESTAMP '2015-09-12 00:00:00' AND TIMESTAMP '2015-09-13 00:00:00' 
-GROUP BY page O
-RDER BY Edits DESC LIMIT 10
+GROUP BY page 
+ORDER BY Edits DESC LIMIT 10
 ```
 ![Screenshot](data/images/query_results.png)
 
@@ -119,3 +119,101 @@ Or any other query as demonstared in [this](http://druid.io/docs/latest/tutorial
 * **METADATA_STORAGE_PORT** - The port metadata storage is listening on
 * **METADATA_STORAGE_USER** - The user name to connect to the metadata storage
 * **METADATA_STORAGE_PASSWORD** - The password to connect to the metadata storage
+
+# Run each service separately
+### Mysql
+* build an image
+```
+docker build -t druid-mysql-image .
+```
+* run as a service
+```
+docker run -dit --name mysql -p 3306:3306 --network druid-net --env-file ../.env druid-mysql-image
+```
+### Minio
+* run as a service
+```
+docker run -dit --name s3-minio -p 9000:9000 --network druid-net -e MINIO_ACCESS_KEY=druid-s3-access -e MINIO_SECRET_KEY=druid-s3-secret --env-file .env minio/minio:latest server /data 
+```
+### Zookeeper
+* run as a service
+```
+docker run -dit --name zookeeper -p 2181:2181 --network druid-net -e ZOO_MY_ID=1 zookeeper:latest
+```
+### Druid
+* build an image
+```
+docker build -t druid-base-image .
+```
+### Coordinator
+* run as a service
+```
+docker run -dit --name coordinator -p 8080:8081 --network druid-net \
+-e DRUID_SERVICE=coordinator  \
+-e "DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager" \
+-e S3_ACCESS_KEY=druid-s3-access \
+-e S3_SECRET_KEY=druid-s3-secret \
+-e METADATA_STORAGE_USER=druid \
+-e METADATA_STORAGE_PASSWORD=diurd \
+--env-file common_env_config druid-base-image
+```
+### Broker
+* run as a service
+```
+docker run -dit --name broker -p 8383:8082 --network druid-net \
+-e DRUID_SERVICE=broker  \
+-e "DRUID_JVM_ARGS=-server -Xms3g -Xmx3g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -XX:NewSize=512m -XX:MaxNewSize=512m -XX:MaxDirectMemorySize=3g -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Dcom.sun.management.jmxremote.port=17071 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false" \
+-e S3_ACCESS_KEY=druid-s3-access \
+-e S3_SECRET_KEY=druid-s3-secret \
+-e METADATA_STORAGE_USER=druid \
+-e METADATA_STORAGE_PASSWORD=diurd \
+--env-file common_env_config druid-base-image
+```
+### Historical
+* run as a service
+```
+docker run -dit --name historical -p 8083:8083 --network druid-net \
+-e DRUID_SERVICE=historical  \
+-e "DRUID_JVM_ARGS=-server -Xms2g -Xmx2g -XX:MaxDirectMemorySize=3g -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager -XX:NewSize=1g -XX:MaxNewSize=1g -XX:+UseConcMarkSweepGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps" \
+-e S3_ACCESS_KEY=druid-s3-access \
+-e S3_SECRET_KEY=druid-s3-secret \
+-e METADATA_STORAGE_USER=druid \
+-e METADATA_STORAGE_PASSWORD=diurd \
+--env-file common_env_config druid-base-image
+```
+### Overlord
+* run as a service
+```
+docker run -dit --name overlord -p 8082:8090 --network druid-net \
+-e DRUID_SERVICE=overlord  \
+-e "DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager" \
+-e S3_ACCESS_KEY=druid-s3-access \
+-e S3_SECRET_KEY=druid-s3-secret \
+-e METADATA_STORAGE_USER=druid \
+-e METADATA_STORAGE_PASSWORD=diurd \
+--env-file common_env_config druid-base-image
+```
+### Middlemanager
+* run as a service
+```
+docker run -dit --name middlemanager -p 8091:8091 --network druid-net \
+-e DRUID_SERVICE=middleManager  \
+-e "DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager" \
+-e S3_ACCESS_KEY=druid-s3-access \
+-e S3_SECRET_KEY=druid-s3-secret \
+-e METADATA_STORAGE_USER=druid \
+-e METADATA_STORAGE_PASSWORD=diurd \
+--env-file common_env_config druid-base-image
+```
+### Router
+* run as a service
+```
+docker run -dit --name router -p 8081:8080 --network druid-net \
+-e DRUID_SERVICE=router  \
+-e "DRUID_JVM_ARGS=-server -Xms256m -Xmx256m -Duser.timezone=UTC -Dfile.encoding=UTF-8 -Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager" \
+-e S3_ACCESS_KEY=druid-s3-access \
+-e S3_SECRET_KEY=druid-s3-secret \
+-e METADATA_STORAGE_USER=druid \
+-e METADATA_STORAGE_PASSWORD=diurd \
+--env-file common_env_config druid-base-image
+```
