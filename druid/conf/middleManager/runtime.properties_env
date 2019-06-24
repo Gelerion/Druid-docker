@@ -29,12 +29,14 @@ druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor"]
 druid.indexer.fork.property.druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor"]
 
 # Hadoop indexing
-druid.indexer.task.hadoopWorkingPath=var/druid/hadoop-tmp
+druid.indexer.task.hadoopWorkingPath=/tmp/druid/
 druid.indexer.task.defaultHadoopCoordinates=["org.apache.hadoop:hadoop-client:2.8.3"]
+# or custom version
+#druid.indexer.task.defaultHadoopCoordinates=["org.apache.hadoop:hadoop-client:2.9.2","org.apache.hadoop:hadoop-aws:2.9.2"]
 
 # Peon Deep Storage
-# druid.indexer.fork.property.druid.storage.type=s3
-# druid.indexer.fork.property.druid.storage.storageDirectory=druid/segments
+druid.indexer.fork.property.druid.storage.type=s3
+druid.indexer.fork.property.druid.storage.storageDirectory=druid/segments
 
 # Peon
 # Task launch parameters

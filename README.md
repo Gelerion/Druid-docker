@@ -10,7 +10,7 @@ You can start everything with this command:
 
 All environment variables `${}` in docker compose file are substituted by values defined in `.env` file
 
-By default it ships with `0.14.1-incubating` version. If you are willing to change the version use this command:
+By default it ships with `0.14.2-incubating` version. If you are willing to change the version use this command:
 
 > docker-compose build --build-arg DRUID_VERSION="your-version"
 
@@ -119,6 +119,50 @@ Or any other query as demonstared in [this](http://druid.io/docs/latest/tutorial
 * **METADATA_STORAGE_PORT** - The port metadata storage is listening on
 * **METADATA_STORAGE_USER** - The user name to connect to the metadata storage
 * **METADATA_STORAGE_PASSWORD** - The password to connect to the metadata storage
+
+# Hadoop Integration
+* Configuring `hadoop-client`  
+
+In order to enable Hadoop indexing `hadoop-client` should be properly configured.   
+To configure client Hadoop configuration files (e.g. `core-site.xml`, `yarn-site.xml`, etc) should exist on the Druid's classpath.  
+Just place them under `~/drud/conf/_common/hadoop_xml/` folder and `druid-start.sh` script will add them to the Druid’s classpath.   
+* Changing Hadoop version  
+
+Changing Hadoop version is as simple as setting `HADOOP_VERSION` variable.  
+By default it is taken from `common_env_config` file, e.g.
+```
+HADOOP_VERSION=2.9.2
+```
+
+* Loading additional extension
+
+Any additional extensions could be loaded by modifying `DRUID_HADOOP_EXTENIONS` variable. 
+E.g. Adding aws-s3 supprot:
+```
+DRUID_HADOOP_EXTENIONS=org.apache.hadoop:hadoop-aws
+```
+
+* Configuring indexing service which is part of the `middlemanager`
+
+Change `druid.indexer.task.defaultHadoopCoordinates` property in the `~/middleManager/runtime.properties_env` file
+E.g.
+```
+druid.indexer.task.defaultHadoopCoordinates=["org.apache.hadoop:hadoop-client:$HADOOP_VERSION","org.apache.hadoop:hadoop-aws:$HADOOP_VERSION"]
+```  
+* Using Amazon's `S3` as a deep storage isntead of `minio`  
+
+Comment the following properties `~/druid/_common/common.runtime.properties_env` file:
+```
+druid.s3.enablePathStyleAccess=true
+druid.s3.endpoint.url=http://s3-minio:9000
+druid.s3.endpoint.signingRegion=us-east-1
+```
+And don't foget to modify these variables:
+`AWS_REGION`  
+`S3_STORAGE_BUKCET`  
+`S3_STORAGE_BASE_KEY`  
+`S3_ACCESS_KEY`  
+`S3_SECRET_KEY`  
 
 # Run each service separately
 ### Mysql

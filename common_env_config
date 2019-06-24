@@ -9,4 +9,8 @@ LOG_LEVEL=info
 METADATA_STORAGE_HOST=mysql
 METADATA_STORAGE_PORT=3306
 
-DRUID_PULL_EXTENSION=io.druid.extensions:mysql-metadata-storage:0.12.3
+# use ; as a separator
+DRUID_PULL_EXTENSION=org.apache.druid.extensions:mysql-metadata-storage;org.apache.druid.extensions:druid-datasketches;org.apache.druid.extensions:druid-parquet-extensions
+
+#HADOOP_VERSION=2.9.2
+#DRUID_HADOOP_EXTENIONS=org.apache.hadoop:hadoop-aws

@@ -14,5 +14,8 @@ Alternatives:
  https://github.com/druid-io/docker-druid
  https://github.com/anskarl/druid-docker-cluster
 
+Druid Ansible
+https://github.com/abhioncbr/druid-ansible
+
 Druid Scala client library: 
  https://github.com/ing-bank/scruid

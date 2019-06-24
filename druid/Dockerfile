@@ -14,6 +14,7 @@ RUN curl http://apache.spd.co.il/incubator/druid/${DRUID_VERSION}/apache-druid-$
       && mv /opt/apache-druid-${DRUID_VERSION} /opt/druid \
       && mkdir -p /var/log/druid \
       && mkdir -p /opt/druid/data \
+      && curl http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.38/mysql-connector-java-5.1.38.jar > /opt/druid/extensions/mysql-metadata-storage/mysql-connector-java-5.1.38.jar \
       && rm -rf /opt/druid/conf /opt/druid/conf-quickstart
 
 COPY conf /opt/druid/conf/
