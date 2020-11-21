@@ -10,7 +10,7 @@ You can start everything with this command:
 
 All environment variables `${}` in docker compose file are substituted by values defined in `.env` file
 
-By default it ships with `0.14.2-incubating` version. If you are willing to change the version use this command:
+By default it ships with `0.20.0` version. If you are willing to change the version use this command:
 
 > docker-compose build --build-arg DRUID_VERSION="your-version"
 
@@ -23,6 +23,13 @@ This starts a Druid cluster including:
 	- s3-minio - An open source service to mimic S3 API and behavior. Runs on `9000` port.
 - **Mysql**
 	- mysql - Offical mysql image, 5.7.26 version is used. Runs on `3306` port.
+
+---
+**NOTE**
+
+Druid is very sensitive to memory settings. Despite my attempts to reduce buffer size and other settings related to 
+memory consumption, it requires at least `4 GB` of memory to run. Don't forget to adjust Docker's memory settings to 
+fit the requirements.
 
 ---
 **The most useful services:**
@@ -76,19 +83,31 @@ Go to the [zookeeper web](http://localhost:8000) page and you should see the fol
 
 #### Testing our cluster
 Go to the [s3-minio](http://localhost:9000) and create a new bucket called `testbucket`, then upload `wikiticker-2015-09-12-sampled.json`.  
-It can be found under data folder.  
-Then submit the task, POST it to Druid's overlord (by default it runs on 8090)
+![Screenshot](data/images/minio_create_bucket.png)
+The file can be found inside the `druid-docker/data` folder.  
+  
+After uploading the file go to the [Router UI](http://localhost:8080) then click `Load data` -> `Amazon S3` -> `Connect data`
+![Screenshot](data/images/router_load_data.png)
+Enter `s3://testbucket/wikiticker-2015-09-12-sampled.json.gz` to `S3 URIs`, `Apply` then click `Parse data`
+  
+You will see the raw content of your json file
+![Screenshot](data/images/file_content.png)
+Now we will explain to Druid how to parse our json file. Click on `Edit spec` button and insert the spec from `wikipedia-index.json`
+Press `Submit` button and vuola Druid has started running the task.
+![Screenshot](data/images/tasks_section.png)
+After the ingestion task will have been finished, the data will be loaded by Historical processes and available for querying within a minute or two.
+The segments files could be found in s3 storgae as well.
+![Screenshot](data/images/minio_segments.png)
+  
+  
+Alternatively you could start the process using the following `curl` command.
+It will submit the task, POST it to Druid's overlord (by default it runs on 8090)
 ```
 curl -X 'POST' -H 'Content-Type:application/json' -d @your-repository-folder/wikipedia-index.json http://localhost:8090/druid/indexer/v1/task
 ```
-To view the status of the ingestion task, go to the Druid Console Tasks section: [http://localhost:8080/unified-console.html#tasks](http://localhost:8080/unified-console.html#tasks). You can refresh the console periodically, and after the task is successful, you should see a "SUCCESS" status for the task under the Tasks view.  
-![Screenshot](data/images/tasks_section.png)
-After the ingestion task finishes, the data will be loaded by Historical processes and available for querying within a minute or two.
-The segments files could be found in s3 storgae as well.
-![Screenshot](data/images/minio_segments.png)
 
 #### Quering Data
-Now open sql tab: [http://localhost:8080/unified-console.html#sql](http://localhost:8080/unified-console.html#sql)
+Now open sql tab: [http://localhost:8080/unified-console.html#query](http://localhost:8080/unified-console.html#query)
 
 You are free to run any sql query, for example:
 ```

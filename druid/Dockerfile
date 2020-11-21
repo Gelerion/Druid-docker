@@ -1,20 +1,22 @@
 FROM openjdk:8
 
-ARG DRUID_VERSION=0.14.2-incubating
+ARG DRUID_VERSION=0.20.0
+ARG MAVEN_REPO_CENTRAL=https://repo1.maven.org/maven2
 ENV DRUID_VERSION ${DRUID_VERSION}
+ENV MAVEN_REPO_CENTRAL ${MAVEN_REPO_CENTRAL}
 ENV LOG_LEVEL info
 
 RUN apt-get update \
       && apt-get install -y curl gettext-base
 
 # Install druid
-RUN curl http://apache.spd.co.il/incubator/druid/${DRUID_VERSION}/apache-druid-${DRUID_VERSION}-bin.tar.gz > /opt/druid-${DRUID_VERSION}-bin.tar.gz \
+RUN curl https://downloads.apache.org/druid/${DRUID_VERSION}/apache-druid-${DRUID_VERSION}-bin.tar.gz > /opt/druid-${DRUID_VERSION}-bin.tar.gz \
       && tar -xvf /opt/druid-${DRUID_VERSION}-bin.tar.gz -C /opt/ \
       && rm -f /opt/druid-${DRUID_VERSION}-bin.tar.gz \
       && mv /opt/apache-druid-${DRUID_VERSION} /opt/druid \
       && mkdir -p /var/log/druid \
       && mkdir -p /opt/druid/data \
-      && curl http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.38/mysql-connector-java-5.1.38.jar > /opt/druid/extensions/mysql-metadata-storage/mysql-connector-java-5.1.38.jar \
+      && curl ${MAVEN_REPO_CENTRAL}/mysql/mysql-connector-java/5.1.38/mysql-connector-java-5.1.38.jar > /opt/druid/extensions/mysql-metadata-storage/mysql-connector-java-5.1.38.jar \
       && rm -rf /opt/druid/conf /opt/druid/conf-quickstart
 
 COPY conf /opt/druid/conf/

@@ -10,20 +10,19 @@ druid.plaintextPort=8083
 druid.server.http.numThreads=5
 
 # Processing threads and buffers
-druid.processing.buffer.sizeBytes=128000000
-druid.processing.numThreads=3
+druid.processing.buffer.sizeBytes=50MiB
+druid.processing.numThreads=2
 
 # Logging
 # druid.monitoring.monitors=["io.druid.client.cache.CacheMonitor", "com.metamx.metrics.JvmMonitor", "io.druid.server.metrics.HistoricalMetricsMonitor"]
 druid.monitoring.monitors=["com.metamx.metrics.JvmMonitor"]
 
 # Segment storage
-druid.segmentCache.locations=[{"path":"var/druid/segment-cache","maxSize":5368709120}]
-druid.server.maxSize=5368709120
+druid.segmentCache.locations=[{"path":"var/druid/segment-cache","maxSize":"200MiB"}]
+druid.server.maxSize=200MiB
 
 # Query cache
 druid.historical.cache.useCache=true
 druid.historical.cache.populateCache=true
 druid.cache.type=caffeine
-# 200 mb
-druid.cache.sizeInBytes=200000000
+druid.cache.sizeInBytes=200MiB

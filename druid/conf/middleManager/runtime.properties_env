@@ -20,7 +20,7 @@ druid.worker.capacity=2
 druid.indexer.runner.startPort=7081
 
 # Processing threads and buffers on Peons
-druid.indexer.fork.property.druid.processing.buffer.sizeBytes=256000000
+druid.indexer.fork.property.druid.processing.buffer.sizeBytes=50MiB
 druid.indexer.fork.property.druid.processing.numThreads=2
 
 # Logging

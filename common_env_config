@@ -4,13 +4,15 @@ S3_STORAGE_BASE_KEY=segments
 
 ZOOKEEPER_SERVER=zookeeper
 
-LOG_LEVEL=info
+LOG_LEVEL=INFO
 
 METADATA_STORAGE_HOST=mysql
 METADATA_STORAGE_PORT=3306
 
 # use ; as a separator
-DRUID_PULL_EXTENSION=org.apache.druid.extensions:mysql-metadata-storage;org.apache.druid.extensions:druid-datasketches;org.apache.druid.extensions:druid-parquet-extensions
+# DRUID_PULL_EXTENSION=org.apache.druid.extensions:mysql-metadata-storage;org.apache.druid.extensions:druid-datasketches;org.apache.druid.extensions:druid-parquet-extensions
+
+DRUID_PULL_EXTENSION=org.apache.druid.extensions:mysql-metadata-storage
 
 #HADOOP_VERSION=2.9.2
 #DRUID_HADOOP_EXTENIONS=org.apache.hadoop:hadoop-aws
