@@ -92,11 +92,13 @@ Enter `s3://testbucket/wikiticker-2015-09-12-sampled.json.gz` to `S3 URIs`, `App
   
 You will see the raw content of your json file
 ![Screenshot](data/images/file_content.png)
-Now we will explain to Druid how to parse our json file. Click on `Edit spec` button and insert the spec from `wikipedia-index.json`
+  
+Now we will explain to Druid how to parse our json file. Click on `Edit spec` button and insert the spec defined in `wikipedia-index.json`
 Press `Submit` button and vuola Druid has started running the task.
 ![Screenshot](data/images/tasks_section.png)
-After the ingestion task will have been finished, the data will be loaded by Historical processes and available for querying within a minute or two.
-The segments files could be found in s3 storgae as well.
+  
+After the ingestion task has been finished, the data will be loaded by Historical processes and available for querying within a minute or two. 
+The segment files could be found in s3 storgae as well.
 ![Screenshot](data/images/minio_segments.png)
   
   
